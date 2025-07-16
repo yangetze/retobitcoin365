@@ -1,0 +1,190 @@
+/* style.css */
+:root {
+    --bitcoin-orange: #f7931a; /* El naranja característico de Bitcoin */
+    --text-color-dark: #333;
+    --background-light: #f4f4f4;
+    --card-background: #ffffff;
+    --border-color: #ddd;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--background-light);
+    color: var(--text-color-dark);
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header {
+    background-color: var(--bitcoin-orange);
+    color: white;
+    padding: 40px 0;
+    text-align: center;
+    border-bottom: 5px solid #e08000; /* Un naranja más oscuro para el borde */
+}
+
+header .bitcoin-logo {
+    width: 80px; /* Tamaño del logo */
+    height: auto;
+    margin-bottom: 15px;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2.8em;
+    letter-spacing: 2px;
+}
+
+header p {
+    font-size: 1.2em;
+    margin-top: 10px;
+}
+
+main {
+    padding: 20px 0;
+}
+
+section {
+    background-color: var(--card-background);
+    margin-bottom: 25px;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+section h2 {
+    color: var(--bitcoin-orange);
+    font-size: 2em;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+.step-card {
+    background-color: #fefefe;
+    border: 1px solid var(--border-color);
+    border-left: 5px solid var(--bitcoin-orange); /* Barra naranja distintiva */
+    border-radius: 5px;
+    padding: 20px;
+    margin-bottom: 15px;
+}
+
+.step-card h3 {
+    color: var(--bitcoin-orange);
+    margin-top: 0;
+    font-size: 1.5em;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+ul li {
+    margin-bottom: 8px;
+    padding-left: 25px;
+    position: relative;
+}
+
+ul li::before {
+    content: '✅'; /* Un checkmark como viñeta */
+    position: absolute;
+    left: 0;
+    color: var(--bitcoin-orange);
+}
+
+ol {
+    list-style-type: decimal;
+    margin-left: 20px;
+}
+
+ol li {
+    margin-bottom: 8px;
+}
+
+.social-links {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.social-links li {
+    padding-left: 0;
+}
+
+.social-links li::before {
+    content: none; /* Eliminar el checkmark para los enlaces de redes sociales */
+}
+
+.social-links a {
+    display: inline-block;
+    background-color: var(--bitcoin-orange);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.social-links a:hover {
+    background-color: #e08000; /* Un naranja más oscuro al pasar el ratón */
+}
+
+footer {
+    background-color: var(--text-color-dark);
+    color: white;
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 30px;
+}
+
+footer p {
+    margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 2em;
+    }
+
+    header p {
+        font-size: 1em;
+    }
+
+    section {
+        padding: 20px;
+    }
+
+    section h2 {
+        font-size: 1.8em;
+    }
+
+    .step-card h3 {
+        font-size: 1.3em;
+    }
+
+    .social-links {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    header h1 {
+        font-size: 1.8em;
+    }
+    header .bitcoin-logo {
+        width: 60px;
+    }
+    .container {
+        padding: 10px;
+    }
+}
