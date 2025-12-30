@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // Mapping inputs to display elements
+    // Note: Some inputs update multiple elements, handled separately or via multiple entries
     const bindings = [
         { input: 'input-username', display: 'disp-username' },
         { input: 'input-days', display: 'disp-days' },
@@ -10,12 +11,25 @@ document.addEventListener('DOMContentLoaded', () => {
         { input: 'input-current-value', display: 'disp-current-value' },
         { input: 'input-avg-price', display: 'disp-avg-price' },
         { input: 'input-max-price', display: 'disp-max-price-sm' }, // Using the small display in advantage card
-        { input: 'input-min-price', display: 'disp-min-price' }, // Added per review
+        // { input: 'input-min-price', display: 'disp-min-price' }, // Removed, handled below with overlay
         { input: 'input-top-month-name', display: 'disp-top-month-name' },
         { input: 'input-top-month-val', display: 'disp-top-month-val' },
         { input: 'input-min-month-name', display: 'disp-min-month-name' },
         { input: 'input-min-month-val', display: 'disp-min-month-val' }
     ];
+
+    // Helper to format integer (strip decimals after comma or dot)
+    const formatInteger = (value) => {
+        // If value has a comma, take the part before it
+        if (value.includes(',')) {
+            return value.split(',')[0];
+        }
+        // If value looks like "125.000" (thousands separator), we keep it.
+        // But if user enters "125.50" (decimal dot), we might want to strip.
+        // Given ambiguity, we'll assume European style: dot = thousands, comma = decimal.
+        // So we only strip after comma.
+        return value;
+    };
 
     // Add event listeners for text inputs
     bindings.forEach(bind => {
@@ -24,14 +38,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (inputEl && displayEl) {
             inputEl.addEventListener('input', () => {
-                // Special handling for Suffixes if needed,
-                // but currently the HTML structure has the suffix outside the span for some, inside for others.
-                // Let's check HTML:
-                // <span id="disp-sats">360.809 SAT</span> -> Wait, I put SAT inside the span text in HTML initially?
-                // Let's check: <span id="disp-sats">360.809 SAT</span>.
-                // If I replace textContent, I lose " SAT".
-                // Correction: I should update the plan to ensure suffixes are handled or just append them here.
-
                 if (bind.display === 'disp-sats') {
                     displayEl.textContent = inputEl.value + ' SAT';
                 } else if (bind.display === 'disp-btc') {
@@ -42,6 +48,29 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     });
+
+    // Special handling for Max/Min Overlay prices (Multiple targets and Integer formatting)
+    const maxPriceInput = document.getElementById('input-max-price');
+    const minPriceInput = document.getElementById('input-min-price');
+    const maxPriceOverlay = document.getElementById('disp-max-price-overlay');
+    const minPriceOverlay = document.getElementById('disp-min-price-overlay');
+
+    if (maxPriceInput && maxPriceOverlay) {
+        maxPriceInput.addEventListener('input', () => {
+            maxPriceOverlay.textContent = formatInteger(maxPriceInput.value);
+            // Also trigger the existing binding for disp-max-price-sm is handled above by bindings array
+        });
+        // Init value
+         maxPriceOverlay.textContent = formatInteger(maxPriceInput.value);
+    }
+
+    if (minPriceInput && minPriceOverlay) {
+        minPriceInput.addEventListener('input', () => {
+            minPriceOverlay.textContent = formatInteger(minPriceInput.value);
+        });
+        // Init value
+        minPriceOverlay.textContent = formatInteger(minPriceInput.value);
+    }
 
     // Image Upload Handling
     const imageInput = document.getElementById('input-chart-image');
