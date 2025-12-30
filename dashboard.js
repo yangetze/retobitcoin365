@@ -122,4 +122,49 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Share Functionality
+    const shareBtn = document.getElementById('btn-share');
+
+    shareBtn.addEventListener('click', () => {
+        const captureTarget = document.getElementById('capture-target');
+
+        // Get values for message
+        const sats = document.getElementById('input-sats').value;
+        const days = document.getElementById('input-days').value;
+        const shareText = `¡He acumulado ${sats} SATs en ${days} días! 🚀 este es mi #RetoBitcoin365Wrapped`;
+
+        if (typeof html2canvas !== 'undefined') {
+            html2canvas(captureTarget, {
+                backgroundColor: null,
+                scale: 2,
+                useCORS: true
+            }).then(canvas => {
+                canvas.toBlob(blob => {
+                    const file = new File([blob], 'btc-dca-dashboard.png', { type: 'image/png' });
+
+                    if (navigator.share) {
+                        navigator.share({
+                            title: 'BTC DCA Wrapped 2025',
+                            text: shareText,
+                            files: [file]
+                        })
+                        .catch(err => {
+                            if (err.name !== 'AbortError') {
+                                console.error('Error sharing:', err);
+                                alert('Error al compartir. Intenta descargar la imagen manualmente.');
+                            }
+                        });
+                    } else {
+                        alert('Tu navegador no soporta la función de compartir nativa. Por favor usa el botón de Descargar.');
+                    }
+                }, 'image/png');
+            }).catch(err => {
+                console.error('Error generating image for share:', err);
+                alert('Hubo un error al generar la imagen para compartir.');
+            });
+        } else {
+            alert('La librería html2canvas no está cargada.');
+        }
+    });
+
 });
