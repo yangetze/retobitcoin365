@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { input: 'input-max-price', display: 'disp-max-price-sm' }, // Using the small display in advantage card
         // Note: The screenshot had max/min on the chart too, but that's part of the image usually.
         // We will just map what we have structure for.
+        { input: 'input-top-month-name', display: 'disp-top-month-name' },
         { input: 'input-top-month-val', display: 'disp-top-month-val' },
         { input: 'input-min-month-name', display: 'disp-min-month-name' },
         { input: 'input-min-month-val', display: 'disp-min-month-val' }

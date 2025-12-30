@@ -14,3 +14,11 @@
 127.0.0.1 - - [30/Dec/2025 18:03:21] "GET /dashboard.html HTTP/1.1" 200 -
 127.0.0.1 - - [30/Dec/2025 18:03:21] "GET /dashboard.css HTTP/1.1" 200 -
 127.0.0.1 - - [30/Dec/2025 18:03:21] "GET /dashboard.js HTTP/1.1" 200 -
+127.0.0.1 - - [30/Dec/2025 18:22:53] "GET /index.html HTTP/1.1" 200 -
+127.0.0.1 - - [30/Dec/2025 18:22:53] code 404, message File not found
+127.0.0.1 - - [30/Dec/2025 18:22:53] "GET /bitcoin_logo.png HTTP/1.1" 404 -
+127.0.0.1 - - [30/Dec/2025 18:22:53] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [30/Dec/2025 18:22:53] "GET /script.js HTTP/1.1" 200 -
+127.0.0.1 - - [30/Dec/2025 18:22:53] "GET /dashboard.html HTTP/1.1" 200 -
+127.0.0.1 - - [30/Dec/2025 18:22:53] "GET /dashboard.css HTTP/1.1" 200 -
+127.0.0.1 - - [30/Dec/2025 18:22:53] "GET /dashboard.js HTTP/1.1" 200 -
