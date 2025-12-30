@@ -76,6 +76,29 @@ section h2 {
     margin-bottom: 15px;
 }
 
+.highlight-card {
+    background-color: #fff8e1; /* Fondo ligeramente amarillo/naranja claro */
+    border-color: var(--bitcoin-orange);
+    text-align: center;
+}
+
+.cta-button {
+    display: inline-block;
+    background-color: var(--bitcoin-orange);
+    color: white;
+    padding: 12px 25px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    margin-top: 15px;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.cta-button:hover {
+    background-color: #e67e22;
+    transform: scale(1.05);
+}
+
 .step-card h3 {
     color: var(--bitcoin-orange);
     margin-top: 0;
