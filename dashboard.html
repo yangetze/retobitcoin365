@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BTC DCA Dashboard Generator</title>
+    <link rel="stylesheet" href="dashboard.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- html2canvas for screenshot -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Configuration Side -->
+        <aside class="config-panel">
+            <h2>Configuración</h2>
+            <form id="dashboard-form">
+                <div class="form-group">
+                    <label>Nombre de Usuario</label>
+                    <input type="text" id="input-username" value="@Usuario">
+                </div>
+
+                <div class="form-group">
+                    <label>Día del año</label>
+                    <input type="number" id="input-days" value="364">
+                </div>
+
+                <div class="form-group">
+                    <label>Monto Total Invertido ($)</label>
+                    <input type="text" id="input-invested" value="364">
+                </div>
+
+                <div class="form-group">
+                    <label>Total Satoshis</label>
+                    <input type="text" id="input-sats" value="360.809">
+                </div>
+
+                <div class="form-group">
+                    <label>Total BTC</label>
+                    <input type="text" id="input-btc" value="0.00360809">
+                </div>
+
+                <div class="form-group">
+                    <label>Valor Actual ($)</label>
+                    <input type="text" id="input-current-value" value="319,68">
+                </div>
+
+                <div class="form-group">
+                    <label>Precio Promedio ($)</label>
+                    <input type="text" id="input-avg-price" value="102.275">
+                </div>
+
+                <div class="form-group">
+                    <label>Precio Máximo ($)</label>
+                    <input type="text" id="input-max-price" value="125.000">
+                </div>
+
+                <div class="form-group">
+                    <label>Precio Mínimo ($)</label>
+                    <input type="text" id="input-min-price" value="76.394">
+                </div>
+
+                <div class="form-group">
+                    <label>Mes Top Sats (Mes / Valor)</label>
+                    <div class="row">
+                        <input type="text" id="input-top-month-name" value="Marzo">
+                        <input type="text" id="input-top-month-val" value="1.203">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Mes Min Sats (Mes / Valor)</label>
+                    <div class="row">
+                        <input type="text" id="input-min-month-name" value="Julio">
+                        <input type="text" id="input-min-month-val" value="865">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Subir Gráfico</label>
+                    <input type="file" id="input-chart-image" accept="image/*">
+                </div>
+
+                <div class="form-group" style="margin-top: 30px;">
+                    <button type="button" id="btn-download" style="width: 100%; padding: 12px; background-color: #F7931A; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 1rem;">
+                        <i class="fa-solid fa-download"></i> Descargar Imagen
+                    </button>
+                </div>
+            </form>
+        </aside>
+
+        <!-- Dashboard Preview -->
+        <main class="preview-area">
+            <div class="dashboard-card" id="capture-target">
+                <!-- Header -->
+                <header class="dash-header">
+                    <div class="title">
+                        <i class="fa-solid fa-sparkles" style="color: #F7931A;"></i>
+                        <h1>BTC DCA Wrapped 2025</h1>
+                        <i class="fa-solid fa-sparkles" style="color: #F7931A;"></i>
+                        <i class="fa-brands fa-bitcoin" style="color: #F7931A; font-size: 1.5em; margin-left: 10px;"></i>
+                    </div>
+                    <div class="user-tag">
+                        <i class="fa-brands fa-bitcoin"></i>
+                        <span>RetoBitcoin365</span>
+                        <span class="date" id="disp-username">@Usuario</span>
+                    </div>
+                </header>
+
+                <!-- Grid Content -->
+                <div class="dash-grid">
+
+                    <!-- Card 1: Days & Accumulation -->
+                    <div class="card card-stats-main">
+                        <div class="days-display">
+                            <span class="big-number" id="disp-days">364</span>
+                            <span class="label">Días de DCA</span>
+                            <div class="flag-icon">
+                                <i class="fa-solid fa-flag" style="color: #3498db;"></i>
+                                <i class="fa-regular fa-calendar" style="color: #f1c40f; display: block; margin-top: 5px;"></i>
+                            </div>
+                        </div>
+                        <div class="accumulated">
+                            <p>Acumulado:</p>
+                            <div class="sats-row">
+                                <i class="fa-brands fa-bitcoin" style="color: #3498db;"></i>
+                                <span id="disp-sats">360.809 SAT</span>
+                            </div>
+                            <div class="btc-row">
+                                <i class="fa-brands fa-bitcoin" style="color: #F7931A;"></i>
+                                <span id="disp-btc">0.00360809 BTC</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Chart Image -->
+                    <div class="card card-chart">
+                        <div class="chart-overlay-info">
+                            <div class="invested-badge">
+                                💰 Invertido: $<span id="disp-invested">364</span> USD
+                            </div>
+                            <div class="chart-prices-row">
+                                <div class="mini-price-badge">
+                                    🔥 Max: $<span id="disp-max-price-chart">125.000</span>
+                                </div>
+                                <div class="mini-price-badge">
+                                    ❄️ Min: $<span id="disp-min-price">76.394</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <!-- Image will be injected here -->
+                            <img id="disp-chart-img" src="" alt="Sube una imagen" style="display: none;">
+                            <div id="chart-placeholder">Sube la imagen del gráfico</div>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: DCA Advantage -->
+                    <div class="card card-advantage">
+                        <h3>The DCA Advantage <i class="fa-solid fa-shield-halved" style="color: #f1c40f;"></i></h3>
+                        <p class="sub-label">Tu Promedio:</p>
+                        <div class="price-display">
+                            $<span id="disp-avg-price">102.275</span> USD
+                        </div>
+                        <p class="protect-msg">¡Protegido del pico de $<span id="disp-max-price-sm">125k</span>!</p>
+                    </div>
+
+                    <!-- Card 4: Current Value -->
+                    <div class="card card-value">
+                        <h3><i class="fa-solid fa-chart-line" style="color: #f1c40f;"></i> Valor Actual</h3>
+                        <div class="main-value">
+                            ≈$<span id="disp-current-value">319,68</span> USD
+                        </div>
+                        <div class="sub-value">
+                            Aproximado
+                        </div>
+                    </div>
+
+                    <!-- Card 5: Sats Power -->
+                    <div class="card card-power">
+                        <h3><i class="fa-solid fa-rocket" style="color: #f1c40f;"></i> Sats Power</h3>
+                        <div class="stat-row">
+                            <span>Mes TOP Sats:</span>
+                            <span><span id="disp-top-month-name">Marzo</span> (<span id="disp-top-month-val">1.203</span>/$)</span>
+                        </div>
+                        <div class="stat-row">
+                            <span>Mes más bajo</span>
+                            <span><span id="disp-min-month-name">Jul</span> (<span id="disp-min-month-val">865</span> / $)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <footer class="dash-footer">
+                    <div class="footer-banner">
+                        ¡Disciplina, no especulación! 🚀 #DCA #Bitcoin #RetoBitcoin365 #Wrapped2025
+                    </div>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>
