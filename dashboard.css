@@ -360,3 +360,49 @@ body {
     font-size: 0.9rem;
     transform: skewX(-20deg); /* The visual skew effect */
 }
+
+/* --- Mobile Responsiveness --- */
+@media (max-width: 950px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .config-panel {
+        width: 100%;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid #34495e;
+        overflow-y: visible; /* Let it flow */
+    }
+
+    .preview-area {
+        width: 100%;
+        padding: 20px 0; /* Reduce padding */
+        display: block; /* Change from flex to block to handle transform origin better manually if needed, or keep flex but align top */
+        overflow-x: hidden;
+        min-height: 50vh; /* Ensure some space */
+    }
+
+    /* Ensure the dashboard card stays centered horizontally */
+    .dashboard-card {
+        margin: 0 auto;
+        /* Transform will be handled by JS */
+    }
+
+    /* Floating Download Button on Mobile */
+    #btn-download {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: auto !important; /* Override inline style width: 100% */
+        border-radius: 50px !important;
+        padding: 15px 25px !important;
+        box-shadow: 0 4px 15px rgba(247, 147, 26, 0.5);
+        z-index: 1000;
+        font-size: 1.2rem !important;
+    }
+
+    /* Adjust the icon to be alone or text small if needed, but text is fine */
+
+    /* Share button can stay in form or also float? User only asked for Download button float */
+}

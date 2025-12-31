@@ -94,6 +94,38 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Responsive Scaling Logic
+    const dashboardCard = document.getElementById('capture-target');
+
+    function adjustDashboardScale() {
+        // Only apply scaling if screen is smaller than the card width + padding
+        if (window.innerWidth < 950) {
+            const containerWidth = window.innerWidth;
+            const targetWidth = 900; // Fixed width of the card
+            const padding = 20; // Safety margin
+
+            let scale = (containerWidth - padding) / targetWidth;
+            if (scale > 1) scale = 1;
+
+            dashboardCard.style.transform = `scale(${scale})`;
+            dashboardCard.style.transformOrigin = 'top center';
+
+            // Adjust layout space because transform: scale doesn't affect flow size
+            const originalHeight = dashboardCard.offsetHeight;
+            const scaledHeight = originalHeight * scale;
+            // We use negative margin to remove the empty space left by the scaling
+            dashboardCard.style.marginBottom = `-${originalHeight - scaledHeight}px`;
+        } else {
+            dashboardCard.style.transform = 'none';
+            dashboardCard.style.marginBottom = '0';
+        }
+    }
+
+    // Run on resize and initial load
+    window.addEventListener('resize', adjustDashboardScale);
+    // Use setTimeout to ensure layout is done
+    setTimeout(adjustDashboardScale, 100);
+
     // Download Functionality
     const downloadBtn = document.getElementById('btn-download');
 
@@ -106,7 +138,15 @@ document.addEventListener('DOMContentLoaded', () => {
             html2canvas(captureTarget, {
                 backgroundColor: null, // Transparent background if set in CSS, but card has color
                 scale: 2, // Higher resolution
-                useCORS: true // Attempt to load cross-origin images if any
+                useCORS: true, // Attempt to load cross-origin images if any
+                onclone: (clonedDoc) => {
+                    // Ensure the captured element is full size, not scaled
+                    const clonedCard = clonedDoc.getElementById('capture-target');
+                    if (clonedCard) {
+                        clonedCard.style.transform = 'none';
+                        clonedCard.style.marginBottom = '0';
+                    }
+                }
             }).then(canvas => {
                 // Create a dummy link to trigger download
                 const link = document.createElement('a');
@@ -137,7 +177,15 @@ document.addEventListener('DOMContentLoaded', () => {
             html2canvas(captureTarget, {
                 backgroundColor: null,
                 scale: 2,
-                useCORS: true
+                useCORS: true,
+                onclone: (clonedDoc) => {
+                    // Ensure the captured element is full size, not scaled
+                    const clonedCard = clonedDoc.getElementById('capture-target');
+                    if (clonedCard) {
+                        clonedCard.style.transform = 'none';
+                        clonedCard.style.marginBottom = '0';
+                    }
+                }
             }).then(canvas => {
                 canvas.toBlob(blob => {
                     const file = new File([blob], 'btc-dca-dashboard.png', { type: 'image/png' });
