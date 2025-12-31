@@ -378,7 +378,9 @@ body {
     .preview-area {
         width: 100%;
         padding: 20px 0; /* Reduce padding */
-        display: block; /* Change from flex to block to handle transform origin better manually if needed, or keep flex but align top */
+        display: flex; /* Use flex to center */
+        flex-direction: column;
+        align-items: center; /* Center horizontally */
         overflow-x: hidden;
         min-height: 50vh; /* Ensure some space */
     }
@@ -389,17 +391,15 @@ body {
         /* Transform will be handled by JS */
     }
 
-    /* Floating Download Button on Mobile */
+    /* Button styles revert to default (stacked in form) */
     #btn-download {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        width: auto !important; /* Override inline style width: 100% */
-        border-radius: 50px !important;
-        padding: 15px 25px !important;
-        box-shadow: 0 4px 15px rgba(247, 147, 26, 0.5);
-        z-index: 1000;
-        font-size: 1.2rem !important;
+        /* Reset any specific mobile overrides if they existed, but we removed the floating ones */
+        width: 100% !important; /* Ensure it stays full width in the form */
+        border-radius: 5px !important;
+        padding: 12px !important;
+        box-shadow: none;
+        position: static;
+        z-index: auto;
     }
 
     /* Adjust the icon to be alone or text small if needed, but text is fine */

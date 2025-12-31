@@ -102,21 +102,40 @@ document.addEventListener('DOMContentLoaded', () => {
         if (window.innerWidth < 950) {
             const containerWidth = window.innerWidth;
             const targetWidth = 900; // Fixed width of the card
-            const padding = 20; // Safety margin
+            // Use 0 padding for calculation to maximize space, but parent has padding-top
+            // The preview-area has padding: 20px 0.
+            // We want to center the card.
 
-            let scale = (containerWidth - padding) / targetWidth;
+            let scale = (containerWidth - 20) / targetWidth; // 20px buffer
             if (scale > 1) scale = 1;
 
+            // To center correctly while scaling, we use top left origin and margin auto on container,
+            // or we calculate the necessary left offset.
+            // A reliable way is top left origin + margin-left calculation.
+
             dashboardCard.style.transform = `scale(${scale})`;
-            dashboardCard.style.transformOrigin = 'top center';
+            dashboardCard.style.transformOrigin = 'top left';
+
+            // Calculate left margin to center
+            const scaledWidth = targetWidth * scale;
+            const marginLeft = (containerWidth - scaledWidth) / 2;
+
+            // Apply margins
+            dashboardCard.style.marginLeft = `${marginLeft}px`;
 
             // Adjust layout space because transform: scale doesn't affect flow size
             const originalHeight = dashboardCard.offsetHeight;
             const scaledHeight = originalHeight * scale;
-            // We use negative margin to remove the empty space left by the scaling
+
+            // We use negative margin bottom to remove the empty space left by the scaling
             dashboardCard.style.marginBottom = `-${originalHeight - scaledHeight}px`;
+            // And negative margin right to prevent horizontal scroll caused by the invisible original width
+            dashboardCard.style.marginRight = `-${targetWidth - scaledWidth}px`;
+
         } else {
             dashboardCard.style.transform = 'none';
+            dashboardCard.style.marginLeft = 'auto'; // Reset to auto (centered by CSS)
+            dashboardCard.style.marginRight = 'auto';
             dashboardCard.style.marginBottom = '0';
         }
     }
