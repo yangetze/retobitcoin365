@@ -94,6 +94,57 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Responsive Scaling Logic
+    const dashboardCard = document.getElementById('capture-target');
+
+    function adjustDashboardScale() {
+        // Only apply scaling if screen is smaller than the card width + padding
+        if (window.innerWidth < 950) {
+            const containerWidth = window.innerWidth;
+            const targetWidth = 900; // Fixed width of the card
+            // Use 0 padding for calculation to maximize space, but parent has padding-top
+            // The preview-area has padding: 20px 0.
+            // We want to center the card.
+
+            let scale = (containerWidth - 20) / targetWidth; // 20px buffer
+            if (scale > 1) scale = 1;
+
+            // To center correctly while scaling, we use top left origin and margin auto on container,
+            // or we calculate the necessary left offset.
+            // A reliable way is top left origin + margin-left calculation.
+
+            dashboardCard.style.transform = `scale(${scale})`;
+            dashboardCard.style.transformOrigin = 'top left';
+
+            // Calculate left margin to center
+            const scaledWidth = targetWidth * scale;
+            const marginLeft = (containerWidth - scaledWidth) / 2;
+
+            // Apply margins
+            dashboardCard.style.marginLeft = `${marginLeft}px`;
+
+            // Adjust layout space because transform: scale doesn't affect flow size
+            const originalHeight = dashboardCard.offsetHeight;
+            const scaledHeight = originalHeight * scale;
+
+            // We use negative margin bottom to remove the empty space left by the scaling
+            dashboardCard.style.marginBottom = `-${originalHeight - scaledHeight}px`;
+            // And negative margin right to prevent horizontal scroll caused by the invisible original width
+            dashboardCard.style.marginRight = `-${targetWidth - scaledWidth}px`;
+
+        } else {
+            dashboardCard.style.transform = 'none';
+            dashboardCard.style.marginLeft = 'auto'; // Reset to auto (centered by CSS)
+            dashboardCard.style.marginRight = 'auto';
+            dashboardCard.style.marginBottom = '0';
+        }
+    }
+
+    // Run on resize and initial load
+    window.addEventListener('resize', adjustDashboardScale);
+    // Use setTimeout to ensure layout is done
+    setTimeout(adjustDashboardScale, 100);
+
     // Download Functionality
     const downloadBtn = document.getElementById('btn-download');
 
@@ -106,7 +157,15 @@ document.addEventListener('DOMContentLoaded', () => {
             html2canvas(captureTarget, {
                 backgroundColor: null, // Transparent background if set in CSS, but card has color
                 scale: 2, // Higher resolution
-                useCORS: true // Attempt to load cross-origin images if any
+                useCORS: true, // Attempt to load cross-origin images if any
+                onclone: (clonedDoc) => {
+                    // Ensure the captured element is full size, not scaled
+                    const clonedCard = clonedDoc.getElementById('capture-target');
+                    if (clonedCard) {
+                        clonedCard.style.transform = 'none';
+                        clonedCard.style.marginBottom = '0';
+                    }
+                }
             }).then(canvas => {
                 // Create a dummy link to trigger download
                 const link = document.createElement('a');
@@ -137,7 +196,15 @@ document.addEventListener('DOMContentLoaded', () => {
             html2canvas(captureTarget, {
                 backgroundColor: null,
                 scale: 2,
-                useCORS: true
+                useCORS: true,
+                onclone: (clonedDoc) => {
+                    // Ensure the captured element is full size, not scaled
+                    const clonedCard = clonedDoc.getElementById('capture-target');
+                    if (clonedCard) {
+                        clonedCard.style.transform = 'none';
+                        clonedCard.style.marginBottom = '0';
+                    }
+                }
             }).then(canvas => {
                 canvas.toBlob(blob => {
                     const file = new File([blob], 'btc-dca-dashboard.png', { type: 'image/png' });
