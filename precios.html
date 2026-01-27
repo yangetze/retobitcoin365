@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Precios de Mercado - RetoBitcoin365</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="precios.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" href="bitcoin_logo.png" type="image/png">
+    <meta name="theme-color" content="#F7931A">
+</head>
+<body>
+    <header>
+        <div class="nav-left">
+            <a href="index.html">
+                <i class="fa-solid fa-arrow-left"></i> Volver
+            </a>
+        </div>
+        <div class="nav-right">
+            <button id="theme-toggle" class="theme-toggle">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <h1>Mercado en Tiempo Real</h1>
+
+        <div class="prices-grid">
+            <!-- Bitcoin Card -->
+            <div class="price-card">
+                <div class="card-icon btc-color">
+                    <i class="fa-brands fa-bitcoin"></i>
+                </div>
+                <div class="card-title">Bitcoin (BTC)</div>
+                <div class="card-price" id="price-btc"><span class="loading">...</span></div>
+                <div class="card-currency">USD</div>
+            </div>
+
+            <!-- USDT Card -->
+            <div class="price-card">
+                <div class="card-icon usdt-color">
+                    <i class="fa-solid fa-circle-dollar-to-slot"></i>
+                </div>
+                <div class="card-title">USDT (Binance P2P)</div>
+                <div class="card-price" id="price-usdt"><span class="loading">...</span></div>
+                <div class="card-currency">VES (Bolívares)</div>
+            </div>
+
+            <!-- Dolar Oficial Card -->
+            <div class="price-card">
+                <div class="card-icon usd-color">
+                    <i class="fa-solid fa-money-bill-wave"></i>
+                </div>
+                <div class="card-title">Dólar BCV (Oficial)</div>
+                <div class="card-price" id="price-usd-bcv"><span class="loading">...</span></div>
+                <div class="card-currency">VES (Bolívares)</div>
+            </div>
+
+            <!-- Euro Oficial Card -->
+            <div class="price-card">
+                <div class="card-icon eur-color">
+                    <i class="fa-solid fa-euro-sign"></i>
+                </div>
+                <div class="card-title">Euro BCV (Estimado)</div>
+                <div class="card-price" id="price-eur-bcv"><span class="loading">...</span></div>
+                <div class="card-currency">VES (Bolívares)</div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>Datos actualizados al cargar la página.</p>
+        <p>&copy; 2025 RetoBitcoin365</p>
+    </footer>
+
+    <script src="precios.js"></script>
+</body>
+</html>
