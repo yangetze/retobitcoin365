@@ -1,0 +1,10 @@
+127.0.0.1 - - [28/Jan/2026 04:32:30] "GET /precios.html HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 04:32:30] "GET /precios.js HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 04:32:30] "GET /precios.css HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 04:32:31] "GET /sw.js HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 04:32:31] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 04:32:31] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 04:32:31] "GET /index.html HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 04:32:31] code 404, message File not found
+127.0.0.1 - - [28/Jan/2026 04:32:31] "GET /bitcoin_logo.png HTTP/1.1" 404 -
+127.0.0.1 - - [28/Jan/2026 04:32:31] "GET /script.js HTTP/1.1" 200 -
