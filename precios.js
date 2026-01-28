@@ -1,5 +1,51 @@
+// Currency Definitions
+const CURRENCIES = {
+    'btc': {
+        name: 'Bitcoin (BTC)',
+        icon: 'fa-brands fa-bitcoin',
+        colorClass: 'btc-color',
+        priceId: 'price-btc',
+        currency: 'USD'
+    },
+    'usdt': {
+        name: 'USDT (Binance P2P)',
+        icon: 'fa-solid fa-circle-dollar-to-slot',
+        colorClass: 'usdt-color',
+        priceId: 'price-usdt',
+        currency: 'VES (Bolívares)'
+    },
+    'usd-bcv': {
+        name: 'Dólar BCV (Oficial)',
+        icon: 'fa-solid fa-money-bill-wave',
+        colorClass: 'usd-color',
+        priceId: 'price-usd-bcv',
+        currency: 'VES (Bolívares)'
+    },
+    'eur-bcv': {
+        name: 'Euro BCV (Estimado)',
+        icon: 'fa-solid fa-euro-sign',
+        colorClass: 'eur-color',
+        priceId: 'price-eur-bcv',
+        currency: 'VES (Bolívares)'
+    }
+};
+
+// Default Configuration
+const DEFAULT_CONFIG = [
+    { id: 'btc', visible: true },
+    { id: 'usdt', visible: true },
+    { id: 'usd-bcv', visible: true },
+    { id: 'eur-bcv', visible: true }
+];
+
+let currentConfig = [];
+let pricesCache = {};
+
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
+    loadConfig();
+    renderGrid();
+    setupEventListeners();
     fetchPrices();
     registerSW();
 });
@@ -34,6 +80,140 @@ function initTheme() {
     });
 }
 
+function loadConfig() {
+    const saved = localStorage.getItem('currencyConfig');
+    if (saved) {
+        try {
+            currentConfig = JSON.parse(saved);
+            // Basic validation to ensure all IDs exist in CURRENCIES
+            // If we add new currencies in future, we might need to merge.
+            // For now, if length differs, let's reset or merge.
+            // Simple merge: add missing ones from DEFAULT.
+            DEFAULT_CONFIG.forEach(defItem => {
+                if (!currentConfig.find(c => c.id === defItem.id)) {
+                    currentConfig.push(defItem);
+                }
+            });
+        } catch (e) {
+            console.error('Error parsing config', e);
+            currentConfig = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+        }
+    } else {
+        currentConfig = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+    }
+}
+
+function saveConfig() {
+    localStorage.setItem('currencyConfig', JSON.stringify(currentConfig));
+}
+
+function renderGrid() {
+    const grid = document.getElementById('prices-grid');
+    grid.innerHTML = '';
+
+    currentConfig.forEach(item => {
+        if (!item.visible) return;
+
+        const def = CURRENCIES[item.id];
+        if (!def) return;
+
+        const card = document.createElement('div');
+        card.className = 'price-card';
+        card.innerHTML = `
+            <div class="card-icon ${def.colorClass}">
+                <i class="${def.icon}"></i>
+            </div>
+            <div class="card-title">${def.name}</div>
+            <div class="card-price" id="${def.priceId}"><span class="loading">...</span></div>
+            <div class="card-currency">${def.currency}</div>
+        `;
+        grid.appendChild(card);
+    });
+
+    // Restore prices if we have them in cache
+    restorePricesFromCache();
+}
+
+function setupEventListeners() {
+    // Refresh Button
+    const refreshBtn = document.getElementById('refresh-btn');
+    refreshBtn.addEventListener('click', async () => {
+        const icon = refreshBtn.querySelector('i');
+        icon.classList.add('spin');
+        await fetchPrices();
+        setTimeout(() => icon.classList.remove('spin'), 500);
+    });
+
+    // Settings Button & Modal
+    const settingsBtn = document.getElementById('settings-btn');
+    const modal = document.getElementById('settings-modal');
+    const closeBtn = document.querySelector('.close-modal');
+    const closeActionBtn = document.getElementById('close-settings-btn');
+
+    settingsBtn.addEventListener('click', () => {
+        renderSettingsList();
+        modal.classList.add('show');
+    });
+
+    const closeModal = () => modal.classList.remove('show');
+    closeBtn.addEventListener('click', closeModal);
+    closeActionBtn.addEventListener('click', closeModal);
+    window.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+}
+
+function renderSettingsList() {
+    const list = document.getElementById('settings-list');
+    list.innerHTML = '';
+
+    currentConfig.forEach((item, index) => {
+        const def = CURRENCIES[item.id];
+        if (!def) return;
+
+        const div = document.createElement('div');
+        div.className = 'settings-item';
+        div.innerHTML = `
+            <div class="item-info">
+                <i class="${def.icon}" style="color: var(--text-color); opacity: 0.7;"></i>
+                <span>${def.name}</span>
+            </div>
+            <div class="item-controls">
+                <button class="control-btn" onclick="moveItem(${index}, -1)" ${index === 0 ? 'disabled' : ''} title="Subir">
+                    <i class="fa-solid fa-arrow-up"></i>
+                </button>
+                <button class="control-btn" onclick="moveItem(${index}, 1)" ${index === currentConfig.length - 1 ? 'disabled' : ''} title="Bajar">
+                    <i class="fa-solid fa-arrow-down"></i>
+                </button>
+                <input type="checkbox" id="toggle-${item.id}" class="toggle-input" ${item.visible ? 'checked' : ''} onchange="toggleItem('${item.id}')">
+                <label for="toggle-${item.id}" class="toggle-label"></label>
+            </div>
+        `;
+        list.appendChild(div);
+    });
+}
+
+// Global functions for inline event handlers
+window.moveItem = (index, direction) => {
+    if (direction === -1 && index > 0) {
+        [currentConfig[index], currentConfig[index - 1]] = [currentConfig[index - 1], currentConfig[index]];
+    } else if (direction === 1 && index < currentConfig.length - 1) {
+        [currentConfig[index], currentConfig[index + 1]] = [currentConfig[index + 1], currentConfig[index]];
+    }
+    saveConfig();
+    renderSettingsList();
+    renderGrid();
+};
+
+window.toggleItem = (id) => {
+    const item = currentConfig.find(c => c.id === id);
+    if (item) {
+        item.visible = !item.visible;
+        saveConfig();
+        renderGrid();
+    }
+};
+
 async function fetchPrices() {
     // 1. Bitcoin (USD)
     try {
@@ -43,24 +223,22 @@ async function fetchPrices() {
         updatePrice('price-btc', btcPrice, '$', 2);
     } catch (e) {
         console.error('BTC Error:', e);
-        document.getElementById('price-btc').innerText = 'Error';
+        updatePriceError('price-btc');
     }
 
     // 2. USDT Binance (VES)
     try {
         const res = await fetch('https://criptoya.com/api/usdt/ves/1');
         const data = await res.json();
-        // Use binancep2p ask (lowest price to buy)
         const usdtPrice = data.binancep2p.ask;
         updatePrice('price-usdt', usdtPrice, 'Bs.', 2);
     } catch (e) {
         console.error('USDT Error:', e);
-        document.getElementById('price-usdt').innerText = 'Error';
+        updatePriceError('price-usdt');
     }
 
     // 3. Dolar BCV (Oficial) and 4. Euro BCV (Derived)
     try {
-        // Fetch BCV USD
         const resUSD = await fetch('https://ve.dolarapi.com/v1/dolares');
         const dataUSD = await resUSD.json();
         const oficialData = dataUSD.find(d => d.fuente === 'oficial');
@@ -69,29 +247,17 @@ async function fetchPrices() {
             const usdVal = oficialData.promedio || oficialData.venta;
             updatePrice('price-usd-bcv', usdVal, 'Bs.', 2);
 
-            // Fetch Global EUR/USD to calculate Euro BCV
             try {
                 const resEur = await fetch('https://open.er-api.com/v6/latest/USD');
                 const dataEur = await resEur.json();
-                const eurRate = dataEur.rates.EUR; // This is USD -> EUR (e.g. 0.92)
-
-                // We need EUR value in VES.
-                // USD/VES = X
-                // 1 EUR = (1 / EUR_RATE) USD
-                // EUR/VES = (1 / EUR_RATE) * USD/VES
-
-                // Alternatively, fetch EUR base.
-                // Let's use the rate we have.
-                // 1 USD = 0.92 EUR => 1 EUR = 1.08 USD.
-                // Euro (VES) = (1 / eurRate) * usdVal
-
+                const eurRate = dataEur.rates.EUR;
                 const eurToUsd = 1 / eurRate;
                 const eurVes = eurToUsd * usdVal;
 
                 updatePrice('price-eur-bcv', eurVes, 'Bs.', 2);
             } catch (errEur) {
                 console.error('Euro Calc Error:', errEur);
-                document.getElementById('price-eur-bcv').innerText = 'Error';
+                updatePriceError('price-eur-bcv');
             }
 
         } else {
@@ -100,23 +266,17 @@ async function fetchPrices() {
 
     } catch (e) {
         console.error('BCV Error:', e);
-        document.getElementById('price-usd-bcv').innerText = 'Error';
-        document.getElementById('price-eur-bcv').innerText = 'Error';
+        updatePriceError('price-usd-bcv');
+        updatePriceError('price-eur-bcv');
     }
 }
 
 function updatePrice(elementId, value, prefix = '', decimals = 2) {
+    // Save to cache
+    pricesCache[elementId] = { value, prefix, decimals, error: false };
+
     const el = document.getElementById(elementId);
-    // Format number: e.g. 3,500.00
-    const formatted = value.toLocaleString('en-US', {
-        minimumFractionDigits: decimals,
-        maximumFractionDigits: decimals
-    });
-    // Replace commas with dots and dots with commas for Venezuelan format usually,
-    // but users often understand standard US format.
-    // Let's stick to standard locale for now or user request.
-    // User context is Venezuela. Often they use European format (comma for decimals, dot for thousands).
-    // Let's force Spanish locale formatting.
+    if (!el) return;
 
     const formattedES = value.toLocaleString('es-VE', {
         minimumFractionDigits: decimals,
@@ -124,6 +284,24 @@ function updatePrice(elementId, value, prefix = '', decimals = 2) {
     });
 
     el.innerText = `${prefix} ${formattedES}`;
+}
+
+function updatePriceError(elementId) {
+    pricesCache[elementId] = { error: true };
+    const el = document.getElementById(elementId);
+    if (el) {
+        el.innerText = 'Error';
+    }
+}
+
+function restorePricesFromCache() {
+    for (const [id, data] of Object.entries(pricesCache)) {
+        if (data.error) {
+            updatePriceError(id);
+        } else {
+            updatePrice(id, data.value, data.prefix, data.decimals);
+        }
+    }
 }
 
 function registerSW() {

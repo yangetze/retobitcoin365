@@ -18,7 +18,13 @@
             </a>
         </div>
         <div class="nav-right">
-            <button id="theme-toggle" class="theme-toggle">
+            <button id="refresh-btn" class="icon-btn" title="Actualizar precios">
+                <i class="fa-solid fa-arrows-rotate"></i>
+            </button>
+            <button id="settings-btn" class="icon-btn" title="Configurar visualización">
+                <i class="fa-solid fa-gear"></i>
+            </button>
+            <button id="theme-toggle" class="theme-toggle" title="Cambiar tema">
                 <i class="fa-solid fa-moon"></i>
             </button>
         </div>
@@ -27,48 +33,29 @@
     <main>
         <h1>Mercado en Tiempo Real</h1>
 
-        <div class="prices-grid">
-            <!-- Bitcoin Card -->
-            <div class="price-card">
-                <div class="card-icon btc-color">
-                    <i class="fa-brands fa-bitcoin"></i>
-                </div>
-                <div class="card-title">Bitcoin (BTC)</div>
-                <div class="card-price" id="price-btc"><span class="loading">...</span></div>
-                <div class="card-currency">USD</div>
-            </div>
-
-            <!-- USDT Card -->
-            <div class="price-card">
-                <div class="card-icon usdt-color">
-                    <i class="fa-solid fa-circle-dollar-to-slot"></i>
-                </div>
-                <div class="card-title">USDT (Binance P2P)</div>
-                <div class="card-price" id="price-usdt"><span class="loading">...</span></div>
-                <div class="card-currency">VES (Bolívares)</div>
-            </div>
-
-            <!-- Dolar Oficial Card -->
-            <div class="price-card">
-                <div class="card-icon usd-color">
-                    <i class="fa-solid fa-money-bill-wave"></i>
-                </div>
-                <div class="card-title">Dólar BCV (Oficial)</div>
-                <div class="card-price" id="price-usd-bcv"><span class="loading">...</span></div>
-                <div class="card-currency">VES (Bolívares)</div>
-            </div>
-
-            <!-- Euro Oficial Card -->
-            <div class="price-card">
-                <div class="card-icon eur-color">
-                    <i class="fa-solid fa-euro-sign"></i>
-                </div>
-                <div class="card-title">Euro BCV (Estimado)</div>
-                <div class="card-price" id="price-eur-bcv"><span class="loading">...</span></div>
-                <div class="card-currency">VES (Bolívares)</div>
-            </div>
+        <div class="prices-grid" id="prices-grid">
+            <!-- Cards will be generated dynamically -->
         </div>
     </main>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Configuración</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p class="modal-subtitle">Orden y visibilidad de monedas</p>
+                <div id="settings-list" class="settings-list">
+                    <!-- List generated via JS -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="close-settings-btn" class="action-btn">Cerrar</button>
+            </div>
+        </div>
+    </div>
 
     <footer>
         <p>Datos actualizados al cargar la página.</p>
