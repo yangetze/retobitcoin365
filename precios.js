@@ -120,6 +120,9 @@ function renderGrid() {
         const card = document.createElement('div');
         card.className = 'price-card';
         card.innerHTML = `
+            <button class="copy-btn" onclick="copyPrice('${def.priceId}', this)" title="Copiar precio">
+                <i class="fa-regular fa-copy"></i>
+            </button>
             <div class="card-icon ${def.colorClass}">
                 <i class="${def.icon}"></i>
             </div>
@@ -311,3 +314,25 @@ function registerSW() {
         .catch(err => console.log('SW Error:', err));
     }
 }
+
+window.copyPrice = (elementId, btn) => {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+
+    // Check if loading
+    if (el.querySelector('.loading')) return;
+
+    const text = el.innerText;
+
+    navigator.clipboard.writeText(text).then(() => {
+        const icon = btn.querySelector('i');
+        const originalClass = icon.className;
+
+        icon.className = 'fa-solid fa-check';
+        setTimeout(() => {
+            icon.className = originalClass;
+        }, 1500);
+    }).catch(err => {
+        console.error('Failed to copy: ', err);
+    });
+};
