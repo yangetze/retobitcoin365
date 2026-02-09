@@ -322,7 +322,16 @@ window.copyPrice = (elementId, btn) => {
     // Check if loading
     if (el.querySelector('.loading')) return;
 
-    const text = el.innerText;
+    let text = el.innerText;
+
+    // Use cached value if available to get raw number without currency symbol
+    if (pricesCache[elementId] && !pricesCache[elementId].error) {
+        const { value, decimals } = pricesCache[elementId];
+        text = value.toLocaleString('es-VE', {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals
+        });
+    }
 
     navigator.clipboard.writeText(text).then(() => {
         const icon = btn.querySelector('i');
