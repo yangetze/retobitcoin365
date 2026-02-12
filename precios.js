@@ -30,6 +30,15 @@ const CURRENCIES = {
     }
 };
 
+// Calculator Definitions
+const CALCULATOR_CURRENCIES = {
+    'ves': { name: 'Bolívares', symbol: 'Bs.', icon: '🇻🇪', label: '🇻🇪 VES' },
+    'usdt': { name: 'USDT', symbol: '₮', icon: '₮', label: '₮ USDT' },
+    'usd': { name: 'Dólar (BCV)', symbol: '$', icon: '🇺🇸', label: '🇺🇸 USD' },
+    'eur': { name: 'Euro (BCV)', symbol: '€', icon: '🇪🇺', label: '🇪🇺 EUR' },
+    'btc': { name: 'Bitcoin', symbol: '₿', icon: '₿', label: '₿ BTC' }
+};
+
 // Default Configuration
 const DEFAULT_CONFIG = [
     { id: 'btc', visible: true },
@@ -47,6 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadConfig();
     renderGrid();
     setupEventListeners();
+    initCalculator(); // Initialize Calculator
     fetchPrices();
     registerSW();
 
@@ -168,6 +178,18 @@ function setupEventListeners() {
     window.addEventListener('click', (e) => {
         if (e.target === modal) closeModal();
     });
+
+    // Calculator Add Row
+    const addRowBtn = document.getElementById('add-row-btn');
+    if (addRowBtn) {
+        addRowBtn.addEventListener('click', addCalculatorRow);
+    }
+
+    // Calculator Reset
+    const resetCalcBtn = document.getElementById('reset-calc-btn');
+    if (resetCalcBtn) {
+        resetCalcBtn.addEventListener('click', resetCalculator);
+    }
 }
 
 function renderSettingsList() {
@@ -279,6 +301,7 @@ async function fetchPrices() {
 
     lastSyncTime = new Date();
     updateLastSyncUI();
+    renderCalculator(); // Re-render calculator with new prices
 }
 
 function updateLastSyncUI() {
@@ -394,4 +417,192 @@ window.copyPrice = (elementId, btn) => {
     }).catch(err => {
         console.error('Failed to copy: ', err);
     });
+};
+
+// Calculator Helper Functions
+
+function getCalculatorRate(currencyId) {
+    if (currencyId === 'ves') return 1;
+
+    // Get USD rate first as it's needed for BTC
+    let usdRate = null;
+    const usdData = pricesCache['price-usd-bcv'];
+    if (usdData && !usdData.error) {
+        usdRate = usdData.value;
+    }
+
+    if (currencyId === 'btc') {
+         const btcData = pricesCache['price-btc'];
+         if (btcData && !btcData.error && usdRate) {
+             return btcData.value * usdRate;
+         }
+         return null;
+    }
+
+    let cacheKey = '';
+    if (currencyId === 'usdt') cacheKey = 'price-usdt';
+    if (currencyId === 'usd') cacheKey = 'price-usd-bcv';
+    if (currencyId === 'eur') cacheKey = 'price-eur-bcv';
+
+    const data = pricesCache[cacheKey];
+    if (data && !data.error) {
+        return data.value;
+    }
+    return null;
+}
+
+
+// --- Dynamic Calculator Logic ---
+
+let calculatorRows = [];
+const DEFAULT_CALCULATOR_STATE = [
+    { from: 'usdt', amount: 100, to: 'ves' }
+];
+
+function initCalculator() {
+    const saved = localStorage.getItem('calculatorState');
+    if (saved) {
+        try {
+            calculatorRows = JSON.parse(saved);
+            // Basic validation
+            if (Array.isArray(calculatorRows)) {
+                calculatorRows.forEach(row => {
+                    if (typeof row.amount !== 'number') {
+                        row.amount = parseFloat(row.amount) || 0;
+                    }
+                });
+            } else {
+                throw new Error('Invalid state format');
+            }
+        } catch (e) {
+            console.error('Error parsing calculator state', e);
+            calculatorRows = JSON.parse(JSON.stringify(DEFAULT_CALCULATOR_STATE));
+        }
+    } else {
+        calculatorRows = JSON.parse(JSON.stringify(DEFAULT_CALCULATOR_STATE));
+    }
+    renderCalculator();
+}
+
+function saveCalculatorState() {
+    localStorage.setItem('calculatorState', JSON.stringify(calculatorRows));
+}
+
+function renderCalculator() {
+    const container = document.getElementById('calculator-rows-container');
+    if (!container) return; // HTML not ready yet
+
+    container.innerHTML = '';
+
+    calculatorRows.forEach((row, index) => {
+        const rowEl = document.createElement('div');
+        rowEl.className = 'calc-row';
+        rowEl.dataset.index = index;
+
+        // Source Currency Select
+        let sourceOptions = '';
+        for (const [id, def] of Object.entries(CALCULATOR_CURRENCIES)) {
+            const selected = row.from === id ? 'selected' : '';
+            sourceOptions += `<option value="${id}" ${selected}>${def.icon} ${def.name}</option>`;
+        }
+
+        // Dest Currency Select
+        let destOptions = '';
+        for (const [id, def] of Object.entries(CALCULATOR_CURRENCIES)) {
+            const selected = row.to === id ? 'selected' : '';
+            destOptions += `<option value="${id}" ${selected}>${def.icon} ${def.name}</option>`;
+        }
+
+        // Calculate Result
+        const result = calculateConversion(row.amount, row.from, row.to);
+        const resultDisplay = result !== null ? result.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '...';
+
+        const deleteBtn = calculatorRows.length > 1 ? `
+            <button class="remove-row-btn" onclick="removeCalculatorRow(${index})" title="Eliminar fila">
+                <i class="fa-solid fa-trash"></i>
+            </button>` : '';
+
+        rowEl.innerHTML = `
+            <div class="calc-group source-group">
+                <select class="calc-select" onchange="updateRow(${index}, 'from', this.value)">
+                    ${sourceOptions}
+                </select>
+                <input type="number" class="calc-input" value="${row.amount}" oninput="updateRow(${index}, 'amount', this.value)" placeholder="0.00">
+            </div>
+            <div class="calc-arrow">
+                <i class="fa-solid fa-arrow-right"></i>
+            </div>
+            <div class="calc-group dest-group">
+                <select class="calc-select" onchange="updateRow(${index}, 'to', this.value)">
+                    ${destOptions}
+                </select>
+                <div class="calc-result">${resultDisplay}</div>
+            </div>
+            ${deleteBtn}
+        `;
+        container.appendChild(rowEl);
+    });
+}
+
+function calculateConversion(amount, fromId, toId) {
+    if (!amount || isNaN(amount)) return 0;
+
+    const rateFrom = getCalculatorRate(fromId); // Value in VES
+    const rateTo = getCalculatorRate(toId);     // Value in VES
+
+    if (rateFrom === null || rateTo === null) return null;
+
+    // (Amount * From_in_VES) / To_in_VES
+    return (amount * rateFrom) / rateTo;
+}
+
+window.updateRow = (index, field, value) => {
+    if (field === 'amount') {
+        calculatorRows[index].amount = parseFloat(value);
+    } else {
+        calculatorRows[index][field] = value;
+    }
+    saveCalculatorState();
+    if (field === 'amount') {
+        const rowEl = document.querySelector(`.calc-row[data-index="${index}"]`);
+        const resultEl = rowEl.querySelector('.calc-result');
+        const result = calculateConversion(calculatorRows[index].amount, calculatorRows[index].from, calculatorRows[index].to);
+        resultEl.innerText = result !== null ? result.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '...';
+    } else {
+        renderCalculator();
+    }
+};
+
+window.addCalculatorRow = () => {
+    const lastRow = calculatorRows[calculatorRows.length - 1];
+    let newFrom = 'ves';
+    let newTo = 'usdt';
+
+    if (lastRow) {
+        newFrom = lastRow.to; // Chain default
+        if (newFrom === 'ves') newTo = 'usdt';
+        else if (newFrom === 'usdt') newTo = 'ves';
+        else newTo = 'ves';
+    }
+
+    calculatorRows.push({ from: newFrom, amount: 100, to: newTo });
+    saveCalculatorState();
+    renderCalculator();
+};
+
+window.removeCalculatorRow = (index) => {
+    calculatorRows.splice(index, 1);
+    if (calculatorRows.length === 0) {
+        calculatorRows = JSON.parse(JSON.stringify(DEFAULT_CALCULATOR_STATE));
+    }
+    saveCalculatorState();
+    renderCalculator();
+};
+
+window.resetCalculator = () => {
+    if(confirm('¿Reiniciar la calculadora a valores por defecto?')) {
+        calculatorRows = JSON.parse(JSON.stringify(DEFAULT_CALCULATOR_STATE));
+        saveCalculatorState();
+        renderCalculator();
+    }
 };
