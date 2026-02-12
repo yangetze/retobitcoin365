@@ -40,6 +40,7 @@ const DEFAULT_CONFIG = [
 
 let currentConfig = [];
 let pricesCache = {};
+let lastSyncTime = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
@@ -48,6 +49,9 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     fetchPrices();
     registerSW();
+
+    // Update relative time in tooltip every minute
+    setInterval(updateLastSyncUI, 60000);
 });
 
 function initTheme() {
@@ -271,6 +275,52 @@ async function fetchPrices() {
         console.error('BCV Error:', e);
         updatePriceError('price-usd-bcv');
         updatePriceError('price-eur-bcv');
+    }
+
+    lastSyncTime = new Date();
+    updateLastSyncUI();
+}
+
+function updateLastSyncUI() {
+    if (!lastSyncTime) return;
+
+    // Format Date for Display: dd/MM/yyyy HH:mm
+    const day = String(lastSyncTime.getDate()).padStart(2, '0');
+    const month = String(lastSyncTime.getMonth() + 1).padStart(2, '0');
+    const year = lastSyncTime.getFullYear();
+    const hours = String(lastSyncTime.getHours()).padStart(2, '0');
+    const minutes = String(lastSyncTime.getMinutes()).padStart(2, '0');
+
+    const formattedDate = `${day}/${month}/${year} ${hours}:${minutes}`;
+
+    const dateEl = document.getElementById('last-sync-date');
+    if (dateEl) {
+        dateEl.innerText = formattedDate;
+    }
+
+    // Calculate Relative Time for Tooltip
+    const now = new Date();
+    const diffMs = now - lastSyncTime;
+    const diffMins = Math.floor(diffMs / 60000);
+
+    let timeString = '';
+    if (diffMins < 1) {
+        timeString = 'menos de 1 min';
+    } else if (diffMins < 60) {
+        timeString = `${diffMins} min`;
+    } else {
+        const diffHours = Math.floor(diffMins / 60);
+        if (diffHours < 24) {
+            timeString = `${diffHours} h`;
+        } else {
+            const diffDays = Math.floor(diffHours / 24);
+            timeString = `${diffDays} días`;
+        }
+    }
+
+    const refreshBtn = document.getElementById('refresh-btn');
+    if (refreshBtn) {
+        refreshBtn.title = `Actualizar precios. Ult. sincronización ${timeString}.`;
     }
 }
 

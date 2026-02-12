@@ -353,3 +353,25 @@ footer {
 .spin {
     animation: spin 1s linear infinite;
 }
+
+/* Last Sync Date Style */
+.last-sync-date {
+    display: none; /* Hidden on mobile */
+    font-size: 0.9rem;
+    color: var(--text-color);
+    opacity: 0.8;
+    margin-right: 1rem;
+    font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media (min-width: 768px) {
+    .prices-grid {
+        /* Force 4 columns if possible on tablet/desktop */
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    }
+
+    .last-sync-date {
+        display: inline-block;
+    }
+}
