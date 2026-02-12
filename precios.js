@@ -515,7 +515,7 @@ function renderCalculator() {
 
         // Calculate Result
         const result = calculateConversion(row.amount, row.from, row.to);
-        const resultDisplay = result !== null ? result.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '...';
+        const resultDisplay = formatCalculatorResult(result, row.to);
 
         const deleteBtn = calculatorRows.length > 1 ? `
             <button class="remove-row-btn" onclick="removeCalculatorRow(${index})" title="Eliminar fila">
@@ -556,6 +556,25 @@ function calculateConversion(amount, fromId, toId) {
     return (amount * rateFrom) / rateTo;
 }
 
+function formatCalculatorResult(value, currencyId) {
+    if (value === null || isNaN(value)) return '...';
+
+    if (currencyId === 'btc') {
+        const btcText = value.toLocaleString('es-VE', {
+            minimumFractionDigits: 8,
+            maximumFractionDigits: 8
+        });
+        const sats = Math.round(value * 100000000);
+        const satsText = sats.toLocaleString('es-VE');
+        return `${btcText}<span class="sats-helper">${satsText} sats</span>`;
+    } else {
+        return value.toLocaleString('es-VE', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+}
+
 window.updateRow = (index, field, value) => {
     if (field === 'amount') {
         calculatorRows[index].amount = parseFloat(value);
@@ -567,7 +586,7 @@ window.updateRow = (index, field, value) => {
         const rowEl = document.querySelector(`.calc-row[data-index="${index}"]`);
         const resultEl = rowEl.querySelector('.calc-result');
         const result = calculateConversion(calculatorRows[index].amount, calculatorRows[index].from, calculatorRows[index].to);
-        resultEl.innerText = result !== null ? result.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '...';
+        resultEl.innerHTML = formatCalculatorResult(result, calculatorRows[index].to);
     } else {
         renderCalculator();
     }
