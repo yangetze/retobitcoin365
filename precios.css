@@ -453,10 +453,25 @@ input[type=number] {
   -moz-appearance: textfield;
 }
 
-.calc-arrow {
+.swap-btn {
+    background: none;
+    border: none;
     color: var(--text-color);
     opacity: 0.5;
     font-size: 1.2rem;
+    cursor: pointer;
+    transition: transform 0.2s, opacity 0.2s, color 0.2s;
+    padding: 0.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.swap-btn:hover {
+    opacity: 1;
+    background-color: rgba(0,0,0,0.05);
+    color: var(--accent-color);
 }
 
 .calc-result {
@@ -532,10 +547,9 @@ body.dark-mode .sats-helper {
         gap: 0.8rem;
     }
 
-    .calc-arrow {
-        transform: rotate(90deg); /* Point down */
-        text-align: center;
-        padding: 0.2rem 0;
+    .swap-btn {
+        transform: rotate(90deg);
+        margin: 0.2rem 0;
     }
 
     .remove-row-btn {
