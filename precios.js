@@ -259,8 +259,9 @@ async function fetchPrices() {
     try {
         const res = await fetch('https://criptoya.com/api/usdt/ves/1');
         const data = await res.json();
-        const usdtPrice = data.binancep2p.ask;
-        updatePrice('price-usdt', usdtPrice, 'Bs.', 2);
+        const usdtAsk = data.binancep2p.ask;
+        const usdtBid = data.binancep2p.bid;
+        updatePrice('price-usdt', usdtAsk, 'Bs.', 2, usdtBid);
     } catch (e) {
         console.error('USDT Error:', e);
         updatePriceError('price-usdt');
@@ -347,9 +348,9 @@ function updateLastSyncUI() {
     }
 }
 
-function updatePrice(elementId, value, prefix = '', decimals = 2) {
+function updatePrice(elementId, value, prefix = '', decimals = 2, bid = null) {
     // Save to cache
-    pricesCache[elementId] = { value, prefix, decimals, error: false };
+    pricesCache[elementId] = { value, prefix, decimals, error: false, bid };
 
     const el = document.getElementById(elementId);
     if (!el) return;
@@ -375,7 +376,7 @@ function restorePricesFromCache() {
         if (data.error) {
             updatePriceError(id);
         } else {
-            updatePrice(id, data.value, data.prefix, data.decimals);
+            updatePrice(id, data.value, data.prefix, data.decimals, data.bid);
         }
     }
 }
@@ -421,7 +422,7 @@ window.copyPrice = (elementId, btn) => {
 
 // Calculator Helper Functions
 
-function getCalculatorRate(currencyId) {
+function getCalculatorRate(currencyId, isFrom = true) {
     if (currencyId === 'ves') return 1;
 
     // Get USD rate first as it's needed for BTC
@@ -446,6 +447,15 @@ function getCalculatorRate(currencyId) {
 
     const data = pricesCache[cacheKey];
     if (data && !data.error) {
+        if (currencyId === 'usdt') {
+            // When converting FROM USDT, we are selling it to get VES, so we use bid.
+            // When converting TO USDT, we are buying it with VES, so we use value (ask).
+            if (isFrom) {
+                return data.bid || data.value;
+            } else {
+                return data.value;
+            }
+        }
         return data.value;
     }
     return null;
@@ -547,8 +557,11 @@ function renderCalculator() {
 function calculateConversion(amount, fromId, toId) {
     if (!amount || isNaN(amount)) return 0;
 
-    const rateFrom = getCalculatorRate(fromId); // Value in VES
-    const rateTo = getCalculatorRate(toId);     // Value in VES
+    // If same currency, no conversion needed
+    if (fromId === toId) return amount;
+
+    const rateFrom = getCalculatorRate(fromId, true); // Value in VES (Selling)
+    const rateTo = getCalculatorRate(toId, false);     // Value in VES (Buying)
 
     if (rateFrom === null || rateTo === null) return null;
 
