@@ -546,39 +546,51 @@ body.dark-mode .sats-helper {
 
 @media (max-width: 768px) {
     .calc-row {
-        flex-direction: column;
-        align-items: stretch;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
         gap: 0.8rem;
     }
 
+    .source-group {
+        grid-column: 1 / 2;
+        grid-row: 1 / 2;
+        flex-direction: column;
+    }
+
+    .dest-group {
+        grid-column: 2 / 3;
+        grid-row: 1 / 2;
+        flex-direction: column;
+    }
+
     .calc-controls {
+        grid-column: 1 / -1;
+        grid-row: 2 / 3;
         display: flex;
         justify-content: center;
         align-items: center;
         gap: 2rem;
-        order: 2;
         width: 100%;
     }
 
-    .calc-group:nth-of-type(1) {
-        order: 1;
+    .calc-group {
+        width: 100%;
+        align-items: stretch;
     }
 
-    .calc-group:nth-of-type(2) {
-        order: 3;
+    .calc-result {
+        width: 100%;
+        text-align: right;
+        padding-right: 0.6rem;
     }
 
     .swap-btn {
-        transform: rotate(90deg);
         margin: 0;
+        transform: rotate(0deg);
     }
 
     .remove-row-btn {
         position: static;
         margin: 0;
-    }
-
-    .calc-group {
-        width: 100%;
     }
 }
