@@ -539,16 +539,18 @@ function renderCalculator() {
                 </select>
                 <input type="number" class="calc-input" value="${row.amount}" oninput="updateRow(${index}, 'amount', this.value)" placeholder="0.00">
             </div>
-            <button class="swap-btn" onclick="swapCalculatorRow(${index})" title="Intercambiar monedas">
-                <i class="fa-solid fa-arrow-right-arrow-left"></i>
-            </button>
+            <div class="calc-controls">
+                <button class="swap-btn" onclick="swapCalculatorRow(${index})" title="Intercambiar monedas">
+                    <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                </button>
+                ${deleteBtn}
+            </div>
             <div class="calc-group dest-group">
                 <select class="calc-select" onchange="updateRow(${index}, 'to', this.value)">
                     ${destOptions}
                 </select>
                 <div class="calc-result">${resultDisplay}</div>
             </div>
-            ${deleteBtn}
         `;
         container.appendChild(rowEl);
     });

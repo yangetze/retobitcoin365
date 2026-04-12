@@ -528,6 +528,10 @@ body.dark-mode .sats-helper {
     color: #aaa;
 }
 
+.calc-controls {
+    display: contents;
+}
+
 /* Responsive adjustments */
 @media (min-width: 768px) {
     .prices-grid {
@@ -547,15 +551,31 @@ body.dark-mode .sats-helper {
         gap: 0.8rem;
     }
 
+    .calc-controls {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 2rem;
+        order: 2;
+        width: 100%;
+    }
+
+    .calc-group:nth-of-type(1) {
+        order: 1;
+    }
+
+    .calc-group:nth-of-type(2) {
+        order: 3;
+    }
+
     .swap-btn {
         transform: rotate(90deg);
-        margin: 0.2rem 0;
+        margin: 0;
     }
 
     .remove-row-btn {
-        position: absolute;
-        top: 5px;
-        right: 5px;
+        position: static;
+        margin: 0;
     }
 
     .calc-group {
