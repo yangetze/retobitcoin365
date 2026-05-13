@@ -27,6 +27,13 @@ const CURRENCIES = {
         colorClass: 'eur-color',
         priceId: 'price-eur-bcv',
         currency: 'VES (Bolívares)'
+    },
+    'cop': {
+        name: 'Peso Colombiano',
+        icon: 'fa-solid fa-coins',
+        colorClass: 'cop-color',
+        priceId: 'price-cop',
+        currency: 'COP'
     }
 };
 
@@ -36,6 +43,7 @@ const CALCULATOR_CURRENCIES = {
     'usdt': { name: 'USDT', symbol: '₮', icon: '₮', label: '₮ USDT' },
     'usd': { name: 'Dólar (BCV)', symbol: '$', icon: '🇺🇸', label: '🇺🇸 USD' },
     'eur': { name: 'Euro (BCV)', symbol: '€', icon: '🇪🇺', label: '🇪🇺 EUR' },
+    'cop': { name: 'Peso Colombiano', symbol: '$' , icon: '🇨🇴', label: '🇨🇴 COP' },
     'btc': { name: 'Bitcoin', symbol: '₿', icon: '₿', label: '₿ BTC' }
 };
 
@@ -44,7 +52,8 @@ const DEFAULT_CONFIG = [
     { id: 'btc', visible: true },
     { id: 'usdt', visible: true },
     { id: 'usd-bcv', visible: true },
-    { id: 'eur-bcv', visible: true }
+    { id: 'eur-bcv', visible: true },
+    { id: 'cop', visible: true }
 ];
 
 let currentConfig = [];
@@ -285,9 +294,13 @@ async function fetchPrices() {
                 const eurVes = eurToUsd * usdVal;
 
                 updatePrice('price-eur-bcv', eurVes, 'Bs.', 2);
+
+                const copRate = dataEur.rates.COP;
+                updatePrice('price-cop', copRate, 'COP', 0);
             } catch (errEur) {
-                console.error('Euro Calc Error:', errEur);
+                console.error('Euro/COP Calc Error:', errEur);
                 updatePriceError('price-eur-bcv');
+                updatePriceError('price-cop');
             }
 
         } else {
@@ -440,6 +453,14 @@ function getCalculatorRate(currencyId, isFrom = true) {
          return null;
     }
 
+    if (currencyId === 'cop') {
+         const copData = pricesCache['price-cop'];
+         if (copData && !copData.error && usdRate) {
+             return usdRate / copData.value;
+         }
+         return null;
+    }
+
     let cacheKey = '';
     if (currencyId === 'usdt') cacheKey = 'price-usdt';
     if (currencyId === 'usd') cacheKey = 'price-usd-bcv';
@@ -582,6 +603,11 @@ function formatCalculatorResult(value, currencyId) {
         const sats = Math.round(value * 100000000);
         const satsText = sats.toLocaleString('es-VE');
         return `${btcText}<span class="sats-helper">${satsText} sats</span>`;
+    } else if (currencyId === 'cop') {
+        return value.toLocaleString('es-VE', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        });
     } else {
         return value.toLocaleString('es-VE', {
             minimumFractionDigits: 2,
