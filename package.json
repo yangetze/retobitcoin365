@@ -1,0 +1,8 @@
+{
+  "name": "retobitcoin365",
+  "version": "1.0.0",
+  "description": "RetoBitcoin365",
+  "scripts": {
+    "test": "node tests/calculateConversion.test.js"
+  }
+}
