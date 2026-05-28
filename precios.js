@@ -577,12 +577,60 @@ function renderCalculator() {
     });
 }
 
+
+function getRateInUsd(currencyId) {
+    if (currencyId === 'usd' || currencyId === 'usdt') return 1;
+
+    if (currencyId === 'btc') {
+        const btcData = pricesCache['price-btc'];
+        if (btcData && !btcData.error) {
+            return btcData.value; // BTC value is directly in USD
+        }
+        return null;
+    }
+
+    if (currencyId === 'cop') {
+        const copData = pricesCache['price-cop'];
+        if (copData && !copData.error) {
+            return 1 / copData.value; // COP is stored as COP per 1 USD
+        }
+        return null;
+    }
+
+    if (currencyId === 'eur') {
+        // EUR is stored in pricesCache['price-eur-bcv'] as EUR in VES.
+        // We need it in USD. We can divide by USD VES rate.
+        const eurData = pricesCache['price-eur-bcv'];
+        const usdData = pricesCache['price-usd-bcv'];
+        if (eurData && !eurData.error && usdData && !usdData.error) {
+            return eurData.value / usdData.value;
+        }
+        return null;
+    }
+
+    return null;
+}
+
 function calculateConversion(amount, fromId, toId) {
     if (!amount || isNaN(amount)) return 0;
 
     // If same currency, no conversion needed
     if (fromId === toId) return amount;
 
+    // If neither currency is VES, use the USD global parity (1 USDT = 1 USD)
+    if (fromId !== 'ves' && toId !== 'ves') {
+        const rateFromUsd = getRateInUsd(fromId);
+        const rateToUsd = getRateInUsd(toId);
+
+        if (rateFromUsd === null || rateToUsd === null) return null;
+
+        // Convert Amount from 'fromId' to USD, then from USD to 'toId'
+        // amount * rateFromUsd = amount in USD
+        // amount in USD / rateToUsd = amount in toId
+        return (amount * rateFromUsd) / rateToUsd;
+    }
+
+    // Fallback to the original logic if VES is involved (uses local rates)
     const rateFrom = getCalculatorRate(fromId, true); // Value in VES (Selling)
     const rateTo = getCalculatorRate(toId, false);     // Value in VES (Buying)
 
