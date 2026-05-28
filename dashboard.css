@@ -60,7 +60,7 @@ body {
     border: 1px solid #465f75;
     color: white;
     border-radius: 4px;
-    box-sizing: border-box; /* Fix padding issue */
+    box-sizing: border-box;
 }
 
 .form-group .row {
