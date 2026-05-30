@@ -276,41 +276,31 @@ async function fetchPrices() {
         updatePriceError('price-usdt');
     }
 
-    // 3. Dolar BCV (Oficial) and 4. Euro BCV (Derived)
+    // 3. Dolar BCV y Euro BCV (DolarVzla API)
     try {
-        const resUSD = await fetch('https://ve.dolarapi.com/v1/dolares');
-        const dataUSD = await resUSD.json();
-        const oficialData = dataUSD.find(d => d.fuente === 'oficial');
+        const resBCV = await fetch('https://rates.dolarvzla.com/bcv/current.json');
+        const dataBCV = await resBCV.json();
 
-        if (oficialData) {
-            const usdVal = oficialData.promedio || oficialData.venta;
-            updatePrice('price-usd-bcv', usdVal, 'Bs.', 2);
+        const usdVal = dataBCV.current.usd;
+        const eurVal = dataBCV.current.eur;
 
-            try {
-                const resEur = await fetch('https://open.er-api.com/v6/latest/USD');
-                const dataEur = await resEur.json();
-                const eurRate = dataEur.rates.EUR;
-                const eurToUsd = 1 / eurRate;
-                const eurVes = eurToUsd * usdVal;
-
-                updatePrice('price-eur-bcv', eurVes, 'Bs.', 2);
-
-                const copRate = dataEur.rates.COP;
-                updatePrice('price-cop', copRate, 'COP', 0);
-            } catch (errEur) {
-                console.error('Euro/COP Calc Error:', errEur);
-                updatePriceError('price-eur-bcv');
-                updatePriceError('price-cop');
-            }
-
-        } else {
-            throw new Error('No official source found');
-        }
-
+        updatePrice('price-usd-bcv', usdVal, 'Bs.', 2);
+        updatePrice('price-eur-bcv', eurVal, 'Bs.', 2);
     } catch (e) {
         console.error('BCV Error:', e);
         updatePriceError('price-usd-bcv');
         updatePriceError('price-eur-bcv');
+    }
+
+    // 4. Peso Colombiano (FawazAhmed0 API)
+    try {
+        const resCop = await fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json');
+        const dataCop = await resCop.json();
+        const copRate = dataCop.usd.cop;
+        updatePrice('price-cop', copRate, 'COP', 0);
+    } catch (errCop) {
+        console.error('COP Calc Error:', errCop);
+        updatePriceError('price-cop');
     }
 
     lastSyncTime = new Date();
@@ -435,54 +425,6 @@ window.copyPrice = (elementId, btn) => {
 
 // Calculator Helper Functions
 
-function getCalculatorRate(currencyId, isFrom = true) {
-    if (currencyId === 'ves') return 1;
-
-    // Get USD rate first as it's needed for BTC
-    let usdRate = null;
-    const usdData = pricesCache['price-usd-bcv'];
-    if (usdData && !usdData.error) {
-        usdRate = usdData.value;
-    }
-
-    if (currencyId === 'btc') {
-         const btcData = pricesCache['price-btc'];
-         if (btcData && !btcData.error && usdRate) {
-             return btcData.value * usdRate;
-         }
-         return null;
-    }
-
-    if (currencyId === 'cop') {
-         const copData = pricesCache['price-cop'];
-         if (copData && !copData.error && usdRate) {
-             return usdRate / copData.value;
-         }
-         return null;
-    }
-
-    let cacheKey = '';
-    if (currencyId === 'usdt') cacheKey = 'price-usdt';
-    if (currencyId === 'usd') cacheKey = 'price-usd-bcv';
-    if (currencyId === 'eur') cacheKey = 'price-eur-bcv';
-
-    const data = pricesCache[cacheKey];
-    if (data && !data.error) {
-        if (currencyId === 'usdt') {
-            // When converting FROM USDT, we are selling it to get VES, so we use bid.
-            // When converting TO USDT, we are buying it with VES, so we use value (ask).
-            if (isFrom) {
-                return data.bid || data.value;
-            } else {
-                return data.value;
-            }
-        }
-        return data.value;
-    }
-    return null;
-}
-
-
 // --- Dynamic Calculator Logic ---
 
 let calculatorRows = [];
@@ -580,33 +522,56 @@ function renderCalculator() {
 }
 
 
-function getRateInUsd(currencyId) {
-    if (currencyId === 'usd' || currencyId === 'usdt') return 1;
+// Calculator Helper Functions
+
+function getCalculatorRate(currencyId, isFrom = true) {
+    if (currencyId === 'ves') return 1;
+
+    // Fetch the cached Dolar BCV rate to use as a bridge for global currencies (BTC, COP)
+    let usdRate = null;
+    const usdData = pricesCache['price-usd-bcv'];
+    if (usdData && !usdData.error) {
+        usdRate = usdData.value;
+    }
 
     if (currencyId === 'btc') {
-        const btcData = pricesCache['price-btc'];
-        if (btcData && !btcData.error) {
-            return btcData.value; // BTC value is directly in USD
+         const btcData = pricesCache['price-btc'];
+         if (btcData && !btcData.error && usdRate) {
+             return btcData.value * usdRate; // BTC in VES
+         }
+         return null;
+    }
+
+    if (currencyId === 'cop') {
+         const copData = pricesCache['price-cop'];
+         if (copData && !copData.error && usdRate) {
+             return usdRate / copData.value; // COP in VES
+         }
+         return null;
+    }
+
+    if (currencyId === 'usdt') {
+        const usdtData = pricesCache['price-usdt'];
+        if (usdtData && !usdtData.error) {
+            // When converting FROM USDT, we are selling it to get VES, so we use bid.
+            // When converting TO USDT, we are buying it with VES, so we use value (ask).
+            if (isFrom) {
+                return usdtData.bid || usdtData.value;
+            } else {
+                return usdtData.value;
+            }
         }
         return null;
     }
 
-    if (currencyId === 'cop') {
-        const copData = pricesCache['price-cop'];
-        if (copData && !copData.error) {
-            return 1 / copData.value; // COP is stored as COP per 1 USD
-        }
+    if (currencyId === 'usd') {
+        if (usdData && !usdData.error) return usdData.value;
         return null;
     }
 
     if (currencyId === 'eur') {
-        // EUR is stored in pricesCache['price-eur-bcv'] as EUR in VES.
-        // We need it in USD. We can divide by USD VES rate.
         const eurData = pricesCache['price-eur-bcv'];
-        const usdData = pricesCache['price-usd-bcv'];
-        if (eurData && !eurData.error && usdData && !usdData.error) {
-            return eurData.value / usdData.value;
-        }
+        if (eurData && !eurData.error) return eurData.value;
         return null;
     }
 
@@ -615,26 +580,13 @@ function getRateInUsd(currencyId) {
 
 function calculateConversion(amount, fromId, toId) {
     if (!amount || isNaN(amount)) return 0;
-
-    // If same currency, no conversion needed
     if (fromId === toId) return amount;
 
-    // If neither currency is VES, use the USD global parity (1 USDT = 1 USD)
-    if (fromId !== 'ves' && toId !== 'ves') {
-        const rateFromUsd = getRateInUsd(fromId);
-        const rateToUsd = getRateInUsd(toId);
-
-        if (rateFromUsd === null || rateToUsd === null) return null;
-
-        // Convert Amount from 'fromId' to USD, then from USD to 'toId'
-        // amount * rateFromUsd = amount in USD
-        // amount in USD / rateToUsd = amount in toId
-        return (amount * rateFromUsd) / rateToUsd;
-    }
-
-    // Fallback to the original logic if VES is involved (uses local rates)
-    const rateFrom = getCalculatorRate(fromId, true); // Value in VES (Selling)
-    const rateTo = getCalculatorRate(toId, false);     // Value in VES (Buying)
+    // Use VES as the universal bridge.
+    // rateFrom is the value of 1 unit of fromId in VES (Selling price if applicable)
+    // rateTo is the value of 1 unit of toId in VES (Buying price if applicable)
+    const rateFrom = getCalculatorRate(fromId, true);
+    const rateTo = getCalculatorRate(toId, false);
 
     if (rateFrom === null || rateTo === null) return null;
 

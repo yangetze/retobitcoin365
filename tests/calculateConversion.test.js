@@ -5,8 +5,8 @@ const vm = require('vm');
 const preciosPath = path.join(__dirname, '../precios.js');
 const preciosCode = fs.readFileSync(preciosPath, 'utf8');
 
-let getRateInUsdMock = null;
-let getCalculatorRateMock = null;
+// We will inject a mocked pricesCache into the sandbox
+let mockPricesCache = {};
 
 const sandbox = {
     window: { addEventListener: () => {} },
@@ -14,52 +14,49 @@ const sandbox = {
         addEventListener: () => {},
         getElementById: () => ({ innerHTML: '', addEventListener: () => {}, value: '', style: {} }),
         querySelector: () => ({ innerHTML: '', addEventListener: () => {}, value: '', style: {} }),
-        querySelectorAll: () => []
+        querySelectorAll: () => [],
+        createElement: () => ({ className: '', dataset: {}, innerHTML: '' }),
+        createDocumentFragment: () => ({ appendChild: () => {} })
     },
     localStorage: { getItem: () => null, setItem: () => {} },
     navigator: {},
     setInterval: () => {},
     setTimeout: () => {},
-    console: console,
-    isNaN: isNaN,
-    Math: Math,
-    getRateInUsd: (currencyId) => {
-        if (getRateInUsdMock) return getRateInUsdMock(currencyId);
-        return null;
+    console: {
+        log: () => {},
+        error: () => {}
     },
-    getCalculatorRate: (currencyId, isFrom) => {
-        if (getCalculatorRateMock) return getCalculatorRateMock(currencyId, isFrom);
-        return null;
-    }
+    isNaN: isNaN,
+    parseFloat: parseFloat,
+    Math: Math,
+    pricesCache: mockPricesCache
 };
 
 vm.createContext(sandbox);
 
+
 const scriptCode = `
     ${preciosCode}
+    window.setMockCache = function(cache) {
+        pricesCache = cache;
+    };
 `;
+
 try {
     vm.runInContext(scriptCode, sandbox);
 } catch (e) {
     console.error("Error evaluating script:", e);
 }
 
-sandbox.getRateInUsd = (currencyId) => {
-    if (getRateInUsdMock) return getRateInUsdMock(currencyId);
-    return null;
-};
-sandbox.getCalculatorRate = (currencyId, isFrom) => {
-    if (getCalculatorRateMock) return getCalculatorRateMock(currencyId, isFrom);
-    return null;
-};
-
 const calculateConversion = sandbox.calculateConversion;
+
 
 let passed = 0;
 let failed = 0;
 
 function assertEqual(actual, expected, testName) {
-    if (actual === expected || (Number.isNaN(actual) && Number.isNaN(expected))) {
+    // Handling small floating point differences
+    if (actual === expected || (Number.isNaN(actual) && Number.isNaN(expected)) || Math.abs(actual - expected) < 0.0001) {
         console.log("✅ PASS: " + testName);
         passed++;
     } else {
@@ -71,47 +68,55 @@ function assertEqual(actual, expected, testName) {
 }
 
 function runTests() {
-    console.log('Running tests for calculateConversion...');
+    console.log('Running tests for calculateConversion (VES bridge)...');
 
+    // 1. Basic edges cases
     assertEqual(calculateConversion(null, 'usd', 'ves'), 0, 'Should return 0 for null amount');
     assertEqual(calculateConversion(NaN, 'usd', 'ves'), 0, 'Should return 0 for NaN amount');
     assertEqual(calculateConversion(0, 'usd', 'ves'), 0, 'Should return 0 for 0 amount');
-
     assertEqual(calculateConversion(100, 'btc', 'btc'), 100, 'Should return amount if fromId === toId');
-    assertEqual(calculateConversion(50, 'ves', 'ves'), 50, 'Should return amount if fromId === toId (ves)');
 
-    getRateInUsdMock = (currencyId) => {
-        if (currencyId === 'usd') return 1;
-        if (currencyId === 'btc') return 50000;
-        return null;
-    };
-    assertEqual(calculateConversion(2, 'btc', 'usd'), 100000, 'Should convert non-VES currencies using getRateInUsd');
+    // Setup typical cache values
+    // usd: 35 Bs
+    // eur: 38 Bs
+    // usdt: bid 39 Bs, ask 40 Bs
+    // btc: 60000 USD
+    // cop: 4000 COP = 1 USD
 
-    assertEqual(calculateConversion(100000, 'usd', 'btc'), 2, 'Should convert non-VES currencies using getRateInUsd (reverse)');
+    sandbox.window.setMockCache({
+        'price-usd-bcv': { value: 35, error: false },
+        'price-eur-bcv': { value: 38, error: false },
+        'price-usdt': { bid: 39, value: 40, error: false },
+        'price-btc': { value: 60000, error: false },
+        'price-cop': { value: 4000, error: false }
+    });
 
-    getRateInUsdMock = (currencyId) => {
-        if (currencyId === 'usd') return 1;
-        return null;
-    };
-    assertEqual(calculateConversion(2, 'btc', 'usd'), null, 'Should return null if getRateInUsd returns null for fromId');
-    assertEqual(calculateConversion(100000, 'usd', 'btc'), null, 'Should return null if getRateInUsd returns null for toId');
+    // 2. Simple to VES
+    assertEqual(calculateConversion(10, 'usd', 'ves'), 350, '10 USD to VES = 350');
+    assertEqual(calculateConversion(10, 'eur', 'ves'), 380, '10 EUR to VES = 380');
 
-    getCalculatorRateMock = (currencyId, isFrom) => {
-        if (currencyId === 'usdt') return isFrom ? 40 : 38;
-        if (currencyId === 'ves') return 1;
-        return null;
-    };
+    // 3. USDT to VES (selling USDT, use Bid = 39)
+    assertEqual(calculateConversion(10, 'usdt', 'ves'), 390, '10 USDT to VES (bid) = 390');
 
-    assertEqual(calculateConversion(10, 'usdt', 'ves'), 400, 'Should convert to VES using getCalculatorRate');
+    // 4. VES to USDT (buying USDT, use Ask = 40)
+    assertEqual(calculateConversion(400, 'ves', 'usdt'), 10, '400 VES to USDT (ask) = 10');
 
-    assertEqual(calculateConversion(380, 'ves', 'usdt'), 10, 'Should convert from VES using getCalculatorRate');
+    // 5. Global currencies
+    // 1 BTC = 60000 USD. 1 USD = 35 VES. So 1 BTC = 2,100,000 VES.
+    assertEqual(calculateConversion(1, 'btc', 'ves'), 2100000, '1 BTC to VES = 2,100,000');
 
-    getCalculatorRateMock = (currencyId, isFrom) => {
-        if (currencyId === 'ves') return 1;
-        return null;
-    };
-    assertEqual(calculateConversion(10, 'usdt', 'ves'), null, 'Should return null if getCalculatorRate returns null for fromId');
-    assertEqual(calculateConversion(380, 'ves', 'usdt'), null, 'Should return null if getCalculatorRate returns null for toId');
+    // COP in VES = USD_VES / COP_USD = 35 / 4000 = 0.00875 VES per COP
+    assertEqual(calculateConversion(4000, 'cop', 'ves'), 35, '4000 COP to VES = 35');
+
+    // 6. Cross conversions (not involving VES directly)
+    // USD (35 VES) to USDT (Ask = 40 VES) -> 100 USD = 3500 VES -> 3500 / 40 = 87.5 USDT
+    assertEqual(calculateConversion(100, 'usd', 'usdt'), 87.5, '100 USD to USDT');
+
+    // USDT (Bid = 39 VES) to USD (35 VES) -> 100 USDT = 3900 VES -> 3900 / 35 = 111.42857 USD
+    assertEqual(calculateConversion(100, 'usdt', 'usd'), 100 * 39 / 35, '100 USDT to USD');
+
+    // COP to USDT -> 400,000 COP = 100 USD = 3500 VES -> 3500 / 40 = 87.5 USDT
+    assertEqual(calculateConversion(400000, 'cop', 'usdt'), 87.5, '400,000 COP to USDT');
 
     console.log('\n--- Test Summary ---');
     console.log("Passed: " + passed);
