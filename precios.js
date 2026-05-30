@@ -524,6 +524,7 @@ function renderCalculator() {
     if (!container) return; // HTML not ready yet
 
     container.innerHTML = '';
+    const fragment = document.createDocumentFragment();
 
     calculatorRows.forEach((row, index) => {
         const rowEl = document.createElement('div');
@@ -573,8 +574,9 @@ function renderCalculator() {
                 <div class="calc-result">${resultDisplay}</div>
             </div>
         `;
-        container.appendChild(rowEl);
+        fragment.appendChild(rowEl);
     });
+    container.appendChild(fragment);
 }
 
 
