@@ -461,6 +461,16 @@ function saveCalculatorState() {
     localStorage.setItem('calculatorState', JSON.stringify(calculatorRows));
 }
 
+
+function generateCurrencyOptions(selectedId) {
+    let options = '';
+    for (const [id, def] of Object.entries(CALCULATOR_CURRENCIES)) {
+        const selected = selectedId === id ? 'selected' : '';
+        options += `<option value="${id}" ${selected}>${def.icon} ${def.name}</option>`;
+    }
+    return options;
+}
+
 function renderCalculator() {
     const container = document.getElementById('calculator-rows-container');
     if (!container) return; // HTML not ready yet
@@ -474,18 +484,10 @@ function renderCalculator() {
         rowEl.dataset.index = index;
 
         // Source Currency Select
-        let sourceOptions = '';
-        for (const [id, def] of Object.entries(CALCULATOR_CURRENCIES)) {
-            const selected = row.from === id ? 'selected' : '';
-            sourceOptions += `<option value="${id}" ${selected}>${def.icon} ${def.name}</option>`;
-        }
+        let sourceOptions = generateCurrencyOptions(row.from);
 
         // Dest Currency Select
-        let destOptions = '';
-        for (const [id, def] of Object.entries(CALCULATOR_CURRENCIES)) {
-            const selected = row.to === id ? 'selected' : '';
-            destOptions += `<option value="${id}" ${selected}>${def.icon} ${def.name}</option>`;
-        }
+        let destOptions = generateCurrencyOptions(row.to);
 
         // Calculate Result
         const result = calculateConversion(row.amount, row.from, row.to);
