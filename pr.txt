@@ -1,7 +1,0 @@
-# 📝 Create AGENTS.md
-
-## 💡 What
-Created an `AGENTS.md` file in the root directory to store instructions and context for AI agents working on this project.
-
-## 🎯 Why
-To provide clear business rules, style guidelines, architecture constraints, and specific agent behaviors (like Deep Planning Mode) for any AI agent interacting with the codebase. The instructions were synthesized from project memory and are entirely in Spanish as requested.
