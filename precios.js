@@ -67,7 +67,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     initCalculator(); // Initialize Calculator
     fetchPrices();
-    registerSW();
 
     // Update relative time in tooltip every minute
     setInterval(updateLastSyncUI, 60000);
@@ -381,14 +380,6 @@ function restorePricesFromCache() {
         } else {
             updatePrice(id, data.value, data.prefix, data.decimals, data.bid);
         }
-    }
-}
-
-function registerSW() {
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js')
-        .then(reg => console.log('SW Registered'))
-        .catch(err => console.log('SW Error:', err));
     }
 }
 
