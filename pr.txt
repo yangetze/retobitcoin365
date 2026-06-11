@@ -1,14 +1,7 @@
-# ⚡ Optimize calculator rendering performance
+# 📝 Create AGENTS.md
 
 ## 💡 What
-Updated `precios.js:renderCalculator` to use a `DocumentFragment` to batch DOM insertions, rather than directly appending to the DOM within the loop.
+Created an `AGENTS.md` file in the root directory to store instructions and context for AI agents working on this project.
 
 ## 🎯 Why
-Directly manipulating the DOM (`container.appendChild`) inside a loop forces the browser to recalculate layout and potentially repaint the screen on every iteration. Using a `DocumentFragment` stores all the new row elements in memory. We then append the entire fragment to the DOM once outside the loop, resulting in a single layout calculation and paint, effectively avoiding "layout thrashing".
-
-## 📊 Measured Improvement
-I ran a benchmark script simulating 1000 row renderings in a headless Puppeteer browser environment:
-*   **Baseline (1000 rows):** ~0.39 ms average
-*   **Optimized (1000 rows):** ~0.24 ms average
-*   **Change:** ~38% reduction in rendering time.
-*(Note: Absolute execution times were very small since this is a fast loop, but the architectural improvement is standard best practice to prevent layout thrashing and scales better).*
+To provide clear business rules, style guidelines, architecture constraints, and specific agent behaviors (like Deep Planning Mode) for any AI agent interacting with the codebase. The instructions were synthesized from project memory and are entirely in Spanish as requested.
